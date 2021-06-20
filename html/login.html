@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymelaf.org">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>Signin Template for Bootstrap</title>
+	<!-- Bootstrap core CSS -->
+	<link href="../css/bootstrap.min.css" rel="stylesheet">
+	<!-- Custom styles for this template -->
+	<link href="../css/signin.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+	<div id="container">
+		<form class="form-signin">
+			<img class="mb-4" src="../img/bootstrap-solid.svg" alt="" width="72" height="72">
+			<h6><span style="color:red;">{{tips}}</span></h6>
+			<input type="text" name="username" class="form-control" placeholder="用户名" v-model="username" required=""
+				autofocus="">
+			<input type="password" name="password" class="form-control" placeholder="密码" v-model="password" required="">
+			<div class="checkbox mb-3">
+				<label>
+					<input id="rmb" type="checkbox" value="remember-me"> 记住我
+				</label>
+				<a href="/html/registered.html">没有账号注册一个</a>
+			</div>
+
+			<input type="button" id="submitBtn" value="登 录" class="btn btn-lg btn-primary btn-block" @click="dosubmit">
+			<p class="mt-5 mb-3 text-muted">© 2020-2021</p>
+			<a class="btn btn-sm" href="/login.html(language='zh_CN')}">中文</a>
+			<a class="btn btn-sm" href="/login.html(language='en_US')}">English</a>
+		</form>
+	</div>
+	<script src="../js/axios.min.js"></script>
+	<script src="../js/vue.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script>
+		var baseURL = "http://localhost:8088";
+		var vm = new Vue({
+			el: "#container",
+			data: {
+				username: "",
+				password: "",
+				tips: ""
+			},
+			methods: {
+				dosubmit: function () {
+					//校验
+					if (vm.username == "") {
+						vm.tips = "用户名不能为空";
+						vm.colorStyle = "color:red"
+					} else if (vm.password == "") {
+						vm.tips = "用户密码不能为空";
+						vm.colorStyle = "color:red"
+					} else {
+						var url = baseURL + "/user/login"
+						axios.get(url, {
+							params: {
+								username: vm.username,
+								password: vm.password
+							}
+						}).then((res) => {
+							var vo = res.data;
+							if (vo.code == 102) {
+								var checkRMB = document.getElementById("rmb").checked
+								console.log(checkRMB);
+								//如果checkRMB为true说明需要记住密码将用户状态信息存入localStorage
+								if (checkRMB == true) {
+									localStorage.setItem("token", vo.msg)
+									localStorage.setItem("username", vo.data.userName)
+								} else {
+									sessionStorage.setItem("token", vo.msg)
+									sessionStorage.setItem("username", vo.data.userName)
+								}
+								console.log(vo)
+								window.location.href = "/html/index.html";
+							} else {
+								vm.colorStyle = "color:red";
+								vm.tips = "账号或密码错误"
+							}
+						});
+					}
+				},
+
+			}
+		})
+	</script>
+</body>
+
+</html>

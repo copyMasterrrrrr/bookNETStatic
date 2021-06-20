@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <div id="container">
+        <top :username='userName'></top>
+        <!-- <div>
+            <a href="/html/login.html">登录</a>
+            <a href="/html/registered.html">注册</a>
+        </div> -->
+        <!-- <div>
+
+         
+        </div> -->
+
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading" style="text-align: center;">
+                <h1>书籍列表</h1>
+            </div>
+            <div class="panel-body" style="text-align: center;">
+                <h3 style="color: red;" v-if="userRole==0">本站内容需要vip才可观看</h3>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>书名</th>
+                        <th>作者</th>
+                        <th>更新时间</th>
+                        <th>操作</th>
+                        <th v-if="userRole==2"><a type="button" class="btn btn-default" href="/html/addbook.html">添加</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="book in books">
+                        <td>{{book.bookName}}</td>
+                        <td>{{book.bookAuthor}}</td>
+                        <td>{{book.bookModtime}}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="...">
+                                <a type="button" class="btn btn-default" @click="govip(book.bookId)">查看</a>
+                                <a v-if="userRole==2" type="button" class="btn btn-default"
+                                    :href="'/html/upd.html?bookId='+book.bookId">修改</a>
+                                <a v-if="userRole==2" type="button" class="btn btn-default" href=""
+                                    @click="dodelete(book.bookId)">删除</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+    <script src="../js/vue.js"></script>
+    <script src="https://cdn.staticfile.org/vue-router/2.7.0/vue-router.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/top.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+        integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+        crossorigin="anonymous"></script>
+    <script>
+        var baseURL = "http://localhost:8088/";
+        var vm = new Vue({
+            el: "#container",
+            data: {
+                token: "",
+                books: [],
+                userName: "",
+                userRole: ""
+            },
+            created() {
+                //查询token
+                if (localStorage.getItem("token") == null) {
+                    this.token = sessionStorage.getItem("token")
+                    this.userName = sessionStorage.getItem("username")
+                } else {
+                    this.token = localStorage.getItem("token")
+                    this.userName = localStorage.getItem("username")
+                }
+                //查询书籍列表
+                axios({
+                    method: "get",
+                    url: baseURL + "book/bookslist",
+                    headers: {
+                        token: this.token
+                    }
+                }).then((res) => {
+                    if (res.data.code == 301 || res.data.code == 304) {
+                        alert(res.data.msg);
+                        location.href = "/html/login.html";
+                    }
+                    this.books = res.data.data
+                });
+                //查询用户的权限
+                axios({
+                    method: "get",
+                    url: baseURL + "user/selecteByName",
+                    params: {
+                        userName: this.userName
+                    }
+                }).then((res) => {
+                    vm.userRole = res.data.data.userRole
+                })
+            },
+            methods: {
+                //删除书籍
+                dodelete(Id) {
+                    axios({
+                        method: "get",
+                        url: baseURL + "book/dltbook",
+                        params: {
+                            bookId: Id
+                        }
+                    }).then((res) => {
+                        if (res.data.code == 1004) {
+                        }
+                    })
+                },
+                govip(bookId) {
+                    if (vm.userRole == 0) {
+                        var timestamp = (new Date()).valueOf(); 
+                        window.location.href = "/html/buyvip.html?orderId="+timestamp
+                    }else{
+                        window.location.href = "/html/content.html?bookId="+bookId
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

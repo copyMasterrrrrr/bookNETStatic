@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymelaf.org">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>Signin Template for Bootstrap</title>
+	<!-- Bootstrap core CSS -->
+	<link href="../css/bootstrap.min.css" rel="stylesheet">
+	<!-- Custom styles for this template -->
+	<link href="../css/signin.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+	<div id="container">
+		<form class="form-signin">
+			<img class="mb-4" src="../img/bootstrap-solid.svg" alt="" width="72" height="72">
+			<h6><span style="color:red;">{{tips}}</span></h6>
+			<input type="text" name="username" class="form-control" placeholder="用户名" v-model="user.username" required="" autofocus="" @keyup="checkRegistInfo">
+			<input type="password" name="password" class="form-control" placeholder="密码" v-model="user.password" required="" @keyup="checkRegistInfo">
+			<input type="password" name="repassword" class="form-control" placeholder="请再次密码" v-model="user.repassword" required="" @keyup="checkRegistInfo">
+			<div class="checkbox mb-3">
+			</div>
+		
+			<input type="button" id="submitBtn" value="注册" class="btn btn-lg btn-primary btn-block" @click="doRegist">
+			<p class="mt-5 mb-3 text-muted">© 2020-2021</p>
+			<a class="btn btn-sm" href="/login.html(language='zh_CN')}">中文</a>
+			<a class="btn btn-sm" href="/login.html(language='en_US')}">English</a>
+		</form>
+	</div>
+	<script src="../js/axios.min.js"></script>
+	<script src="../js/vue.js"></script>
+	<script src="../js/jquery.js"></script>
+	<script>
+		var baseURL = "http://localhost:8088";
+		var vm = new Vue({
+			el: "#container",
+			data:{
+					user:{
+						username:"",
+						password:"",
+						repassword:""
+					},
+					tips:"",
+					isRight:false
+				},
+			methods: {
+				doRegist(){
+						if(!vm.isRight){
+							vm.tips="请确认注册信息输入完整且正确！";
+						}else{
+							//提交注册
+							var url = baseURL+"/user/registered";
+							let param = new URLSearchParams()
+        					param.append('username', vm.user.username),
+         					param.append('password', vm.user.password),
+							axios({
+								method:"post",
+								url:url,
+								data:param
+							}).then((res)=>{
+								var vo = res.data;
+								if(vo.code==10000){
+									vm.tips = "恭喜你，注册成功！";
+									vm.colorStyle="color:green";
+									setTimeout(function(){
+										window.location.href="/html/login.html";
+									},300)
+								}else{
+									vm.tips =res.data.msg;
+									
+								}
+							});
+						}
+					},
+					checkRegistInfo(){
+						//1.校验账号
+						if(vm.user.username == ""){
+							vm.tips="请输入账号！";
+							vm.isRight = false;
+						}else if(vm.user.username.length<8 || vm.user.username.length>20){
+							vm.tips="账号长度必须为8-20给字符！";
+							vm.isRight = false;
+						}else{
+							//2.校验密码
+							if(vm.user.password == ""){
+								vm.tips="请输入密码！";
+								vm.isRight = false;
+							}else if(vm.user.password.length<6 || vm.user.password.length>16){
+								vm.tips="密码长度必须为6-16给字符！";
+								vm.isRight = false;
+							}else{
+								//3.校验重复密码
+								if(vm.user.repassword == ""){
+									vm.tips="请再次输入密码！";
+									vm.isRight = false;
+								}else if(vm.user.repassword != vm.user.password){
+									vm.tips="两次密码输入不一致！";
+									vm.isRight = false;
+								}else{
+									vm.tips = "";
+									vm.isRight = true;
+								}
+							}
+						}
+					}
+				
+					
+			},
+
+			
+
+		})
+	</script>
+</body>
+
+</html>
